@@ -224,12 +224,76 @@ It's not the most important feature but still good to know 😉.
 
 ### Development tips
 
-#### [Use nodemon to reload your webpack config]()
+#### [Use nodemon to restart webpack everytime the config changes](examples/webpack-nodemon)
 
-1.  Nodemon to hot-reload the webpack config
-2.  Use `require.resolve` when passing absolute paths
-3.  Easiest way to use `resolve.alias`: `resolve.alias: { [require.resolve("./some/file")]: require.resolve("./some/other-file") }`
-4.  Avoid config splitting
+Running `webpack --watch` tells webpack to watch all source files that contribute to the bundle. But what if you made changes to the webpack config itself? webpack does not notice any changes to files that are required by webpack itself.
+
+With [nodemon](https://github.com/remy/nodemon) you can restart webpack everytime you make changes to the webpack config:
+
+```sh
+nodemon --watch webpack.config.js --exec "webpack --watch --mode=development"
+```
+
+#### [Use `require.resolve` when referencing absolute paths](examples/webpack-nodemon)
+
+When writing your own webpack config it can happen easily that a file path is not correct.
+Although webpack will report some errors like a missing entry file, it will not complain about all errors.
+
+For instance: when using `resolve.alias` it can happen easily that the path to be aliased is not correct anymore.
+In this case it's good to use Node's `require.resolve` which will throw an error as soon as the file can not be found.
+
+This is the easiest and safest way to replace one module with another using `resolve.alias`:
+
+```js
+module.exports = {
+    resolve: {
+        alias: {
+            // Each require.resolve() will throw an error if the module cannot be found
+            [require.resolve("./src/index.js")]: require.resolve("./src/replaced.js"),
+        },
+    },
+};
+```
+
+Also useful if you want to execute a loader just on a certain file:
+
+```js
+module.exports = {
+    module: {
+        rules: [
+            {
+                include: [require.resolve("./src/replaced.js")],
+                use: "raw-loader",
+            },
+        ],
+    },
+};
+```
+
+Now everytime you move the file but don't update the path in your webpack config, `require.resolve` will complain about it.
+
+#### [Use `.filter(Boolean)` to remove unwanted loaders or plugins depending on the env](examples/webpack-nodemon)
+
+Adding `.filter(Boolean)` at the end of an array removes all falsy values from an array:
+
+```js
+module.exports = {
+    module: {
+        rules: [
+            isDev && {
+                include: /\.css$/,
+                loader: "style-loader",
+            },
+        ].filter(Boolean),
+    },
+    plugins: [
+        analyze && new BundleAnalyzerPlugin(),
+    ].filter(Boolean),
+};
+```
+
+
+1.  Avoid config splitting
 
 ### Speed up webpack build
 
