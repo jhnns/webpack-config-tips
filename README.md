@@ -404,10 +404,10 @@ Technically, `test` and `include` (and `resource`) work all the same way. But mo
 
 ```js
     rules: [{
-        // Matches for any module that is inside "src" OR that ends on ".ts"
+        // Matches any module that is inside "src" OR that ends on ".ts"
         include: [
             path.resolve(__dirname, "src"),
-            /\.ts$/<
+            /\.ts$/,
         ],
         use: ["ts-loader"],
     }],
