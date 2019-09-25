@@ -1,6 +1,6 @@
 # webpack-config-tips
 
-**No so secret tips and examples on how to write webpack configs.**
+**Not so secret tips and examples on how to write good webpack configs.**
 
 ## Config features
 
@@ -16,7 +16,7 @@ module.exports = {
     output: {
         path: resolve(process.cwd(), "dist"),
         filename: "main.js",
-    }
+    },
 };
 ```
 
@@ -201,7 +201,7 @@ module.exports = async () => {
 };
 ```
 
-Also the `entry` option can be an async function:
+**Question:** Is the following config valid?
 
 ```js
 module.exports = {
@@ -209,18 +209,27 @@ module.exports = {
 };
 ```
 
+Yes or no?
+
+**Answer:** Yes! The `entry` option can also be an async function.
+
 This can be useful if you're building a static site generator that pulls all entries from a database.
 
 It's not the most important feature but still good to know 😉.
 
-### Loader configuration tips
+**Question:** Is the following config valid?
 
-1.  Prefer `module.rules[].oneOf`
-    -   Explain rules
-    -   Order of rules is important
-1.  Prefer `module.rules[].include` over `exclude`
-1.  `module.rules[].resourceQuery` to match on the querystring in a module request like `import text from "./file?raw"` `{ resourceQuery: "?raw", use: "raw-loader" }`
-1.  `module.rules[].issuer` to match on the importing module
+```js
+module.exports = {
+    output: {
+        path: fs.createWriteStream("/some/path"),
+    },
+};
+```
+
+Yes or no?
+
+**Answer:** No 😝
 
 ### Development tips
 
@@ -233,6 +242,8 @@ With [nodemon](https://github.com/remy/nodemon) you can restart webpack everytim
 ```sh
 nodemon --watch webpack.config.js --exec "webpack --watch --mode=development"
 ```
+
+**Make sure to only watch the `webpack.config.js`** otherwise you might loose webpack's incremental build feature.
 
 #### [Use `require.resolve` when referencing absolute paths](examples/webpack-nodemon)
 
@@ -292,19 +303,410 @@ module.exports = {
 };
 ```
 
+#### Avoid unnecessary abstractions
 
-1.  Avoid config splitting
+Since the webpack config is just JavaScript, people tend to treat it as regular code. They create abstractions as soon as they spot repetition.
+
+While there are legitimate use-cases for this—such as sharing configs across projects—it's often better to keep everything in one file.
+
+For instance, with the previous tip it's not necessary to split your webpack config into env-specific configs:
+
+```js
+    plugins: [
+        isBrowser &&
+            new CopyPlugin(),
+        isBrowser && new WriteAssetsJsonPlugin(),
+        isBrowser &&
+            new MiniCssExtractPlugin(),
+        isAnalysis &&
+            isBrowser &&
+            new BundleAnalyzerPlugin(),
+        isProd &&
+            isBrowser &&
+            new webpack.optimize.UglifyJsPlugin(),
+        isProd &&
+            isBrowser &&
+            isAnalysis === false &&
+            new CompressionPlugin(),
+    ].filter(Boolean)
+```
+
+### Loader configuration tips
+
+#### [Prefer `module.rules[].oneOf`](examples/rules-best-practice)
+
+When it comes to configuring loaders there are three important things to remember:
+
+- The order of rules is important
+- Loaders are executed from bottom to top and from right to left
+- **Every rule that matches gets applied**
+
+**Question:** Given this `rules` config, what loaders will be executed on a `.js` module and in which order?
+
+```js
+    rules: [{
+        use: ["a-loader", "b-loader"],
+    }, {
+        use: ["c-loader"],
+    }],
+```
+
+1. b a
+2. a b c
+3. c b a
+4. none
+
+**Answer:** 3. All matching rules will be applied from bottom to top and from right to left. The `test` property is not required.
+
+Since this behavior is confusing for a lot of people, we recommend to use the `oneOf` condition. This tells webpack to bail out on the first matching rule:
+
+```js
+    rules: [{
+        oneOf: [{
+            use: ["a-loader", "b-loader"],
+        }, {
+            use: ["c-loader"],
+        }],
+    }],
+```
+
+1. b a
+2. a
+3. c b a
+4. none
+
+**Answer:** 1. Only the first rule is applied. Since the first rule contains two loaders, both loaders are executed from right to left.
+
+#### Prefer `module.rules[].include` over `exclude`
+
+There are a lot of ways—probably too many 😔—to configure rules and when they should be applied.
+
+**The good news is:** You only need to remember 2. In 99.99995437% of all cases it's sufficient to use:
+
+- `test` for file names
+- `include` for directories
+
+```js
+    rules: [{
+        include: [path.resolve(__dirname, "src")],
+        test: [/\.ts$/, /\.tsx$/],
+        use: ["ts-loader"],
+    }, {
+        include: [path.resolve(__dirname, "src")],
+        test: [/\.css$/],
+        use: ["css-loader"],
+    }],
+```
+
+Technically, `test` and `include` (and `resource`) work all the same way. But most people use `include` for absolute paths and `test` for regular expressions.
+
+**Be careful:** Only one condition in the array needs to match.
+
+```js
+    rules: [{
+        // Matches for any module that is inside "src" OR that ends on ".ts"
+        include: [
+            path.resolve(__dirname, "src"),
+            /\.ts$/<
+        ],
+        use: ["ts-loader"],
+    }],
+```
+
+#### ["How to apply different loaders on the same module" Part 1](examples/resource-query)
+
+Imagine you want to use the [react-svg-loader](https://www.npmjs.com/package/react-svg-loader). The loader turns an SVG file into a React component:
+
+```html
+<svg height="100" width="100">
+  <circle cx="50" cy="50" r="40" fill="red" />
+</svg>
+```
+
+...becomes...
+
+```jsx
+export default () => (
+    <svg height="100" width="100">
+      <circle cx="50" cy="50" r="40" fill="red" />
+    </svg>
+);
+```
+
+This allows you to render the SVG right in your components:
+
+```js
+import CircleComponent from "./circle.svg";
+
+const component = <CircleComponent />;
+```
+
+But the problem arises when you're also using the same SVG in a CSS file like this:
+
+```css
+body {
+    background: url("./circle.svg");
+}
+```
+
+Should webpack transform the module with the react-svg-loader or with the file-loader?
+
+**One possible solution:** Use the react-svg-loader chain only if there is an `?component` query.
+
+```js
+import CircleComponent from "./circle.svg?component";
+
+const component = <CircleComponent />;
+```
+
+You can achieve this using the `resourceQuery` condition:
+
+```js
+    rules: [{
+        oneOf: [{
+            test: /\.svg$/,
+            resourceQuery: "?component",
+            use: ["react-svg-loader"],
+        },
+        {
+            test: /\.svg$/,
+            use: ["file-loader"],
+        }]
+    }],
+```
+
+#### ["How to apply different loaders on the same module" Part 2](examples/resource-query)
+
+**Same situation, but different solution:** Use the react-svg-loader chain only if the importing module is a `.js` module:
+
+```js
+    rules: [{
+        oneOf: [{
+            test: /\.svg$/,
+            // issuer matches on the importing module
+            issuer: /\.jsx?$/,
+            use: ["react-svg-loader"],
+        },
+        {
+            test: /\.svg$/,
+            use: ["file-loader"],
+        }]
+    }],
+```
+
+Now you can just write:
+
+```js
+import CircleComponent from "./circle.svg";
+
+const component = <CircleComponent />;
+```
 
 ### Speed up webpack build
 
--   Build time performance `--progress --profile`
--   Use `include`
--   `noParse` to speed up builds
--   Remove unnecessary steps like
-    -   Type check
-    -   Linting
--   cache-loader
--   thread-loader
+#### [Find out what's slow](examples/profile)
+
+This can be quite challenging in bigger webpack projects 😔.
+
+First you need to add
+
+```js
+    stats: {
+        maxModules: Infinity, // show all modules
+    }
+```
+
+to your webpack config so that webpack doesn't hide modules in the output. **⚠️ Warning:** the output can be very long.
+
+Then run `webpack --profile --progress` to get an idea which modules took long to build.
+
+![](/assets/stdout-profile-1.jpg)
+
+This output is from an example project where I've delayed each step artificially using `setTimeout`. The example project consists of 3 modules:
+
+- `a.js` is the entry
+- `a.js` depends on `b.js`
+- `b.js` depends on `c.js`
+
+The output is full of information:
+
+- building all modules took 5 seconds
+- writing them to disk (emitting) took 3 seconds
+- resolving each module (factory) took 1 second
+- module `a.js`
+    - took 1 second to resolve (factory)
+    - took 6ms to build
+    - was finished after 1 second
+- module `b.js`
+    - was discovered after 1 second (`a.js` had to be built)
+    - took 1 second to resolve
+    - took 2 seconds to build
+    - was finished after 4 seconds
+- module `c.js`
+    - was discovered after 4 seconds (`b.js` had to be built)
+    - took 1 second to resolve
+    - took 1ms to build
+    - was finished after 5 seconds
+
+You can also try out the excellent [speed-measure-webpack-plugin](https://www.npmjs.com/package/speed-measure-webpack-plugin).
+
+For the given example it would print out the following stats:
+
+![](/assets/stdout-profile-2.jpg)
+
+You will get the best insights by profiling the webpack process itself:
+
+- Run `node --inspect-brk ./node_modules/.bin/webpack`
+
+![](/assets/inspect-1.jpg)
+
+- Open Chrome and go to [chrome://inspect](chrome://inspect)
+- Click on `inspect`
+
+![](/assets/inspect-2.jpg)
+
+- Record a profile
+
+![](/assets/inspect-3.jpg)
+
+You will get a flame graph that looks like this:
+
+![](/assets/inspect-4.jpg)
+
+In our example it would show a flame graph like this:
+
+![](/assets/inspect-5.jpg)
+
+which would be really bad in a real-world application because it shows that the process was idling most of the time 😉.
+
+Once you know what's slow, you can apply specific improvements.
+
+But there are also general tips that will keep your webpack process fast.
+
+#### Use webpack's watch mode
+
+By running `webpack --watch` or using the `webpack-dev-server`, webpack switches to incremental builds. When a file changes only the necessary changes are rebuild.
+
+A common error is to use a different tool for watching files (like [gulp](https://gulpjs.com/)) to restart the webpack process. In that case each build is started from scratch.
+
+#### Restrict loaders using `include`
+
+Use `include` to run loaders only on the `src` folder:
+
+```js
+    rules: [{
+        include: resolve(__dirname, "src"),
+        test: /\.js$/,
+        use: ["babel-loader"],
+    }],
+```
+
+Anyone with a config like this deserves a slow build 😝:
+
+```js
+    rules: [{
+        test: /\.js$/,
+        use: ["babel-loader"],
+    }],
+```
+
+This will transform every module in `node_modules` using Babel.
+
+If a module is not compatible with your browser targets, use `include` to only transpile files from that particular module:
+
+```js
+    rules: [{
+        include: [
+            resolve(__dirname, "src"),
+            resolve(__dirname, "node_modules", "super-modern", "src"),
+        ],
+        test: /\.js$/,
+        use: ["babel-loader"],
+    }],
+```
+
+#### Skip unnecessary build steps
+
+Ask yourself, is it really necessary...
+
+- ...to run the linter or
+- ...to do type-checking
+
+...during a webpack build?
+
+Better move these two steps to `posttest`.
+
+**Secret protip for a fast webpack build:** Do as less as possible 😎
+
+#### [Use the cache-loader](examples/with-cache-loader)
+
+The [cache-loader](https://github.com/webpack-contrib/cache-loader) caches the result of the following loader chain.
+
+Given this configuration:
+
+```js
+    rules: [{
+        include: [
+            resolve(__dirname, "src"),
+        ],
+        test: /\.less$/,
+        use: [
+            "style-loader", // not cached
+            "cache-loader",
+            "css-loader", // cached
+            "less-loader",
+        ],
+    }],
+```
+
+It would cache the result of the `css-loader` (and thus also the result of the `less-loader`) on disk.
+
+When webpack gets executed again and the given module hasn't changed, the cache-loader restores the result from disk.
+
+The cache-loader is not a silver bullet. Sometimes you won't see any improvement. This is because restoring the result from disk can sometimes be just as expensive as building it from scratch.
+
+Some loaders—like the babel-loader—already use a persistent file cache.
+
+#### [Use the thread-loader](examples/with-thread-loader)
+
+The [thread-loader](https://github.com/webpack-contrib/thread-loader) moves the following loader chain to a separate thread.
+
+Given this configuration:
+
+```js
+    rules: [{
+        include: [
+            resolve(__dirname, "src"),
+        ],
+        test: /\.less$/,
+        use: [
+            "style-loader",
+            "thread-loader",
+            "css-loader", // on a separate thread
+            "less-loader", // on a separate thread
+        ],
+    }],
+```
+
+It would run the css-loader and the less-loader in a worker pool using child processes.
+
+Spawning child processes is rather expensive (~600ms). Only use the thread-loader for very expensive transformations that would otherwise block the event loop.
+
+#### Use `noParse` for prebuilt libraries
+
+As a last resort you can tell webpack to not parse prebuilt libraries:
+
+```js
+module.exports = {
+    module: {
+        noParse: [
+            require.resolve("react")
+        ],
+    }
+};
+```
+
+This might speed up the build but it also disables other optimizations such as tree-shaking.
 
 ### Optimization
 
