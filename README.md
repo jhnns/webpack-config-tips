@@ -106,7 +106,7 @@ webpack --env.mode=production --env.debug
 module.exports = (env = {}) => {
     const {
         mode = "development",
-        debug,
+        debug = false,
     } = env;
 
     return {
@@ -130,14 +130,14 @@ module.exports = [
         name: "web",
         target: "web",
         output: {
-            path: resolve(__dirname, "dist", "web")
+            path: resolve(__dirname, "dist", "web"),
         },
     },
     {
         name: "node",
         target: "node",
         output: {
-            path: resolve(__dirname, "dist", "node")
+            path: resolve(__dirname, "dist", "node"),
         },
     },
 ];
@@ -160,9 +160,9 @@ module.exports = Object
     .map(([language, translations]) => ({
         name: language,
         output: {
-            path: resolve(__dirname, "dist", language)
+            path: resolve(__dirname, "dist", language),
         },
-        plugins: [new I18nPlugin(translations)]
+        plugins: [new I18nPlugin(translations)],
     }));
 ```
 
@@ -240,7 +240,7 @@ Running `webpack --watch` tells webpack to watch all source files that contribut
 With [nodemon](https://github.com/remy/nodemon) you can restart webpack everytime you make changes to the webpack config:
 
 ```sh
-nodemon --watch webpack.config.js --exec "webpack --watch --mode=development"
+nodemon --watch webpack.config.js --exec "webpack --watch"
 ```
 
 **Make sure to only watch the `webpack.config.js`** otherwise you might loose webpack's incremental build feature.
