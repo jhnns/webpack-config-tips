@@ -13,7 +13,7 @@
                 <section>
                     <section data-transition="fade"></section>
                     <section data-background-color="var(--color-primary-bg)">
-                        <h1>👋 Ahoj</h1>
+                        <h1>👋 Ahoj 🇨🇿</h1>
                     </section>
                     <section
                         data-background-color="white"
@@ -81,7 +81,7 @@
                 </section>
                 <section>
                     <section data-background-color="var(--color-primary-bg)">
-                        <h2>#???<br />You don't need a webpack config.</h2>
+                        <h2>#1<br />You don't need a webpack config.</h2>
                     </section>
                     <section>
                         <pre class="language-js">
@@ -150,7 +150,7 @@
                         </aside>
                     </section>
                     <section data-background-color="var(--color-primary-bg)">
-                        <h2>#???<br />TypeScript support.</h2>
+                        <h2>#2<br />TypeScript support.</h2>
                         <aside class="notes" data-markdown>
                             You can use TypeScript in your webpack config.
                         </aside>
@@ -285,11 +285,10 @@
                 </section>
                 <section>
                     <section data-background-color="var(--color-primary-bg)">
-                        <h2>#???<br />Function as config.</h2>
+                        <h2>#3<br />Function as config.</h2>
                         <aside class="notes" data-markdown>
-                            Speaking of little known webpack config features:
-                            Did you know that your webpack config can also
-                            export a function?
+                            - Speaking of little known webpack config features:
+                            - Did you know that your webpack config can also export a function?
                         </aside>
                     </section>
                     <section>
@@ -446,7 +445,7 @@
                 </section>
                 <section>
                     <section data-background-color="var(--color-primary-bg)">
-                        <h2>#???<br />Multi-compiler mode.</h2>
+                        <h2>#4<br />Multi-compiler mode.</h2>
                         <aside class="notes" data-markdown>
                             - Instead of exporting a function, it's also possible to export an array of configurations.
                             - This switches webpack into **multi-compiler mode**
@@ -642,7 +641,7 @@ module.exports = Object.entries(translations)
                 </section>
                 <section>
                     <section data-background-color="var(--color-primary-bg)">
-                        <h2>#???<br />Async webpack configs.</h2>
+                        <h2>#5<br />Async webpack configs.</h2>
                         <aside class="notes" data-markdown>
                             - It's also possible to have asynchronous webpack configs.
                             - How does it work?
@@ -822,7 +821,7 @@ module.exports = Object.entries(translations)
                     </section>
                     <section data-background-color="var(--color-primary-bg)">
                         <div>
-                            <h2>#???<br />Use nodemon.</h2>
+                            <h2>#6<br />Use nodemon.</h2>
                         </div>
                         <aside class="notes" data-markdown>
                             - "Use nodemon"
@@ -856,7 +855,7 @@ module.exports = Object.entries(translations)
                         </aside>
                     </section>
                     <section data-background-color="var(--color-primary-bg)">
-                        <h2>#???<br />Use <code>require.resolve()</code>.</h2>
+                        <h2>#7<br />Use <code>require.resolve()</code>.</h2>
                         <aside class="notes" data-markdown>
                             - Use require.resolve() for files
                             - In the previous example it would look like this:
@@ -894,26 +893,608 @@ module.exports = Object.entries(translations)
                         <aside class="notes" data-markdown>
                             - Also useful if you want to execute a loader just on a certain file
                             - Now everytime you move the file but don't update the path in your webpack config, `require.resolve` will complain about it.
+                            - Our next tip is:
                         </aside>
                     </section>
                 </section>
                 <section>
                     <section data-background-color="var(--color-primary-bg)">
-                        <h2>#???<br />Async webpack configs.</h2>
+                        <h2>#8<br />Use <code>.filter(Boolean)</code>.</h2>
                         <aside class="notes" data-markdown>
-                            Speaking of little known webpack config features:
-                            Did you know that your webpack config can also
-                            export a function?
+                            - Use `.filter(Boolean)`
+                        </aside>
+                    </section>
+                    <section data-transition="fade-out">
+                        <pre class="language-js  no-whitespace-normalization"><code>module.exports = {
+    module: {
+        rules: [
+            {
+                test: /\.css$/,
+                loader: "style-loader",
+            },
+        ],
+    },
+};</code></pre>
+                        <aside class="notes" data-markdown>
+                            - Suppose you have loader, but you want to execute that loader only in a specific environment
+                            - For instance: the style-loader. It's nice in development with hot module replacement and all, but certainly not the best option in production
+                        </aside>
+                    </section>
+                    <section data-transition="fade-in">
+                        <pre class="language-js  no-whitespace-normalization"><code>module.exports = {
+    module: {
+        rules: [
+            isDev && {
+                test: /\.css$/,
+                loader: "style-loader",
+            },
+        ].filter(Boolean),
+    },
+};</code></pre>
+                        <p class="fragment">
+                            <code>[ ... ].filter(Boolean)</code> removes all falsy values from an array.
+                        </p>
+                        <aside class="notes" data-markdown>
+                            - Using .filter(Boolean) you can remove it from the loader array when we're not in a development environment.
+                            - filter(Boolean) removes all falsy values from an array
+                        </aside>
+                    </section>
+                    <section>
+                        <pre class="language-js"><code>
+                            module.exports = {
+                                plugins: [
+                                    analyze && new BundleAnalyzerPlugin(),
+                                ].filter(Boolean),
+                            };
+                        </code></pre>
+                        <aside class="notes" data-markdown>
+                            - Of course this works also well with plugins
+                            - But there's also a caveat to this tip:
+                            - Just because a webpack config can contain arbitrary code doesn't mean you should put a lot of code in your config
                         </aside>
                     </section>
                 </section>
                 <section>
-                    TODO: Add link to repo
-                    <aside class="notes" data-markdown></aside>
+                    <section data-background-color="var(--color-primary-bg)">
+                        <h2>#9<br />Be careful about config abstractions.</h2>
+                        <aside class="notes" data-markdown>
+                            - In general: be careful about config abstractions
+                            - A good rule of thumb is:
+                            - The regular webpack config object should still be "visible" on first glance
+                        </aside>
+                    </section>
+                    <section>
+                        <pre class="language-js"><code>
+                            module.exports = {
+                                module: {
+                                    rules: [
+                                        isDev && {
+                                            test: /\.css$/,
+                                            loader: "style-loader",
+                                        },
+                                    ].filter(Boolean),
+                                },
+                                plugins: [
+                                    analyze && new BundleAnalyzerPlugin(),
+                                ].filter(Boolean),
+                            };
+                        </code></pre>
+                        <aside class="notes" data-markdown>
+                            - This is still quite readable since you can easily spot each part of the webpack config.
+                        </aside>
+                    </section>
+                    <section>
+                        <pre class="language-js"><code>
+                            const rules = [];
+                            const plugins = [];
+
+                            if (isDev) {
+                                rules.unshift({
+                                    test: /\.css$/,
+                                    loader: "style-loader",
+                                });
+                            }
+                            if (analyze) {
+                                plugins.push(new BundleAnalyzerPlugin());
+                            }
+
+                            module.exports = {
+                                module: {
+                                    rules,
+                                },
+                                plugins
+                            };
+                        </code></pre>
+                        <aside class="notes" data-markdown>
+                            - This is way harder to parse because we can't see where exactly the loader or the plugin will be added to the config.
+                            - While there are legitimate use-cases for this—such as sharing configs across projects—you should still...
+                        </aside>
+                    </section>
+                    <section>
+                        <strong>Be careful about config abstractions.</strong>
+                        <aside class="notes" data-markdown>
+                            Be careful about config abstractions.
+                        </aside>
+                    </section>
                 </section>
                 <section>
-                    TODO: Search for #??? and add headline numbers
-                    <aside class="notes" data-markdown></aside>
+                    <section data-background-color="var(--color-primary-bg)">
+                        <h2>#10<br />Use <code>module.rules[].oneOf</code>.</h2>
+                        <aside class="notes" data-markdown>
+                            - A quick show of hands: Who of you has used the module.rules option?
+                            - (Announce the audience result for the video recording)
+                            - And who of has used the <code>module.rules[].oneOf</code> option?
+                            - (Announce the audience result for the video recording)
+                        </aside>
+                    </section>
+                    <section>
+                        <strong>So what does the <code>module.rules[].oneOf</code> option do? 🤔</strong>
+                        <aside class="notes" data-markdown>
+                            - So what does the <code>module.rules[].oneOf</code> option do?
+                            - In order to explain that, you need to know how webpack interprets rules.
+                            - This is **really really important** and a lot of people don't get this right.
+                        </aside>
+                    </section>
+                    <section>
+                        <p>
+                            Three important things to remember about loaders:
+                        </p>
+                        <ul>
+                            <li class="fragment">
+                                The order of rules is important
+                            </li>
+                            <li class="fragment">
+                                Loaders are executed from bottom to top and from right to left
+                            </li>
+                            <li class="fragment">
+                                <strong>
+                                    Every rule that matches gets applied
+                                </strong>
+                            </li>
+                        </ul>
+                        <aside class="notes" data-markdown>
+                            - When it comes to configuring loaders there are three important things to remember
+                            - The order of rules is important
+                            - Loaders are executed from bottom to top and from right to left
+                            - Every rule that matches gets applied
+                            - Since this is so important, let's test our knowledge with a small...
+                        </aside>
+                    </section>
+                    <section
+                        data-background-video="./assets/scared-dog-2.mp4"
+                        data-background-video-loop
+                        data-background-opacity="0.6"
+                        data-background-color="black"
+                        data-background-size="contain"
+                    >
+                        <div style="text-align: center;">
+                            <strong>Time for a little quiz!</strong>
+                        </div>
+                        <aside class="notes" data-markdown>
+                            Quiz!
+                        </aside>
+                    </section>
+                    <section data-transition="fade-out">
+                        <p>
+                            Given this <code>rules</code> config, what loaders will be executed on a <code>.js</code> module and in which order?
+                        </p>
+                        <pre class="language-js"><code>
+                            rules: [{
+                                use: ["a-loader", "b-loader"],
+                            }, {
+                                use: ["c-loader"],
+                            }],
+                        </code></pre>
+                        <ol style="display: grid; grid-template-rows: 1fr 1fr; grid-template-columns: 1fr 1fr;">
+                            <li class="fragment">b a</li>
+                            <li class="fragment">a b c</li>
+                            <li class="fragment">c b a</li>
+                            <li class="fragment">none</li>
+                        </ol>
+                        <aside class="notes" data-markdown>
+                            - Given this <code>rules</code> config, what loaders will be executed on a <code>.js</code> module and in which order?
+                            - Take a close look: there are two rules here with two loader chains
+                            - Which one will be applied? Both? And in which order?
+                        </aside>
+                    </section>
+                    <section data-transition="fade">
+                        <p>
+                            <strong>Answer: 3.</strong><br>
+                            Remember: From bottom to top and from right to left.
+                        </p>
+                        <pre class="language-js"><code>
+                            rules: [{
+                                use: ["a-loader", "b-loader"],
+                            }, {
+                                use: ["c-loader"],
+                            }],
+                        </code></pre>
+                        <p>
+                            <code>c-loader</code>&ensp;→&ensp;
+                            <code>b-loader</code>&ensp;→&ensp;
+                            <code>a-loader</code>
+                        </p>
+                        <aside class="notes" data-markdown>
+                            - **Answer:** 3. All matching rules will be applied from bottom to top and from right to left.
+                            - So, it will be c-loader, b-loader and a-loader.
+                            - As a side note, in case you wondered: The `test` property is not required.
+                            - However, since this behavior is confusing for a lot of people, we recommend to use the `oneOf` condition.
+                        </aside>
+                    </section>
+                    <section data-transition="fade-in">
+                        <pre class="language-js"><code>
+                            rules: [{
+                                oneOf: [{
+                                    use: ["a-loader", "b-loader"],
+                                }, {
+                                    use: ["c-loader"],
+                                }],
+                            }],
+                        </code></pre>
+                        <p>
+                            Now the answer is:<br>
+                            <code>b-loader</code>&ensp;→&ensp;
+                            <code>a-loader</code>
+                        </p>
+                        <aside class="notes" data-markdown>
+                            - Now only the b-loader and the a-loader will be executed
+                            - Yes, we have to admit: configuring loaders can be confusing.
+                            - There are a lot of ways to configure loaders, and there are probably too many.
+                        </aside>
+                    </section>
+                    <section data-transition="fade-out">
+                        <pre class="language-js no-whitespace-normalization"><code>rules: [{
+    include: [path.resolve(__dirname, "src")],
+
+
+
+    use: ["ts-loader"],
+}],
+                        </code></pre>
+                        <aside class="notes" data-markdown>
+                            - There is include
+                        </aside>
+                    </section>
+                    <section data-transition="fade">
+                        <pre class="language-js no-whitespace-normalization"><code>rules: [{
+    include: [path.resolve(__dirname, "src")],
+    exclude: [/node_modules/],
+
+
+    use: ["ts-loader"],
+}],
+                        </code></pre>
+                        <aside class="notes" data-markdown>
+                            - There is exclude
+                        </aside>
+                    </section>
+                    <section data-transition="fade">
+                        <pre class="language-js no-whitespace-normalization"><code>rules: [{
+    include: [path.resolve(__dirname, "src")],
+    exclude: [/node_modules/],
+    test: [/\.ts$/, /\.tsx$/],
+
+    use: ["ts-loader"],
+}],
+                        </code></pre>
+                        <aside class="notes" data-markdown>
+                            - test
+                        </aside>
+                    </section>
+                    <section data-transition="fade-in">
+                        <pre class="language-js no-whitespace-normalization"><code>rules: [{
+    include: [path.resolve(__dirname, "src")],
+    exclude: [/node_modules/],
+    test: [/\.ts$/, /\.tsx$/],
+    resource: [path.resolve(__dirname, "src")],
+    use: ["ts-loader"],
+}],
+                        </code></pre>
+                        <aside class="notes" data-markdown>
+                            - resource
+                            - The funny thing is: Technically, `test`, `include` and `resource` work all the same way.
+                            - We recommend the following approach:
+                        </aside>
+                    </section>
+                    <section data-transition="fade-out">
+                        <pre class="language-js no-whitespace-normalization"><code>rules: [{
+
+    test: [/\.ts$/, /\.tsx$/],
+    use: ["ts-loader"],
+}],
+                        </code></pre>
+                        <ul>
+                            <li>Use <code>test</code> for file extensions</li>
+                            <li style="visibility: hidden;">Use <code>include</code> for directories and absolute paths</li>
+                        </ul>
+                        <aside class="notes" data-markdown>
+                            - Use `test` for file extensions
+                            - By the way: `test` can also be an array of regular expressions. This makes it easier to read.
+                        </aside>
+                    </section>
+                    <section data-transition="fade-in">
+                        <pre class="language-js no-whitespace-normalization"><code>rules: [{
+    include: [path.resolve(__dirname, "src")],
+    test: [/\.ts$/, /\.tsx$/],
+    use: ["ts-loader"],
+}],
+                        </code></pre>
+                        <ul>
+                            <li>Use <code>test</code> for file extensions</li>
+                            <li>Use <code>include</code> for directories and absolute paths</li>
+                        </ul>
+                        <aside class="notes" data-markdown>
+                            - Use `include` for directories and absolute paths
+                            - In general: `include` is better than `exclude` because its more explicit
+                            - Never mix `include` and `exclude`
+                        </aside>
+                    </section>
+                    <section>
+                        <p>
+                            <strong>Pro tip 😎: always use <code>include</code></strong>
+                        </p>
+                        <aside class="notes" data-markdown>
+                            - Pro tip: always use include
+                        </aside>
+                    </section>
+                    <section data-transition="fade-out">
+                        <pre class="language-js no-whitespace-normalization"><code>rules: [{
+    include: [
+        path.resolve(__dirname, "src"),
+
+    ],
+    test: /\.js$/,
+    use: ["babel-loader"],
+}],
+                        </code></pre>
+                        <aside class="notes" data-markdown>
+                            - In most cases, you can set the include to your src directory
+                            - This prevents loaders from being executed on modules inside `node_modules`
+                            - This can make a big performance improvement when using the babel-loader
+                        </aside>
+                    </section>
+                    <section data-transition="fade-in">
+                        <pre class="language-js no-whitespace-normalization"><code>rules: [{
+    include: [
+        path.resolve(__dirname, "src"),
+        path.resolve(__dirname, "node_modules", "modern-module"),
+    ],
+    test: /\.js$/,
+    use: ["babel-loader"],
+}],
+                        </code></pre>
+                        <aside class="notes" data-markdown>
+                            - If a module inside `node_modules` requires transpilation, you can add it to the array explicitly.
+                        </aside>
+                    </section>
+                    <section data-background-color="var(--color-primary-bg)">
+                        <h2>#11<br /><code>test</code> for file extensions, <code>include</code> for absolute paths.</h2>
+                        <aside class="notes" data-markdown>
+                            - So our tip #11 is:
+                            - use test for file extensions and include for absolute paths
+                        </aside>
+                    </section>
+                </section>
+                <section>
+                    <section data-background-color="var(--color-primary-bg)">
+                        <h2 class="fragment">#12<br />"How to apply different loaders on the same module" Pt 1.</h2>
+                        <aside class="notes" data-markdown>
+                            - The next two tips are one of the most useful and yet least known features of webpack.
+                            - "How to apply different loaders on the same module" Pt 1
+                            - Part 1 because there are two solutions for the same problem and we want to show both to you
+                            - You can decide which you like better
+                        </aside>
+                    </section>
+                    <section>
+                        <p style="text-align: center;">
+                            <a href="https://www.npmjs.com/package/react-svg-loader" target="_blank">react-svg-loader</a>
+                        </p>
+                        <div class="fragment">
+                            <pre class="language-html"><code>
+                                &lt;svg height="100" width="100">
+                                    &lt;circle cx="50" cy="50" r="40" fill="red" />
+                                &lt;/svg>
+                            </code></pre>
+                        </div>
+                        <div class="fragment">
+                            <pre class="language-jsx"><code>
+                                export default () => (
+                                    &lt;svg height="100" width="100">
+                                        &lt;circle cx="50" cy="50" r="40" fill="red" />
+                                    &lt;/svg>
+                                );
+                            </code></pre>
+                        </div>
+                        <aside class="notes" data-markdown>
+                            - Imagine you want to use the [react-svg-loader](https://www.npmjs.com/package/react-svg-loader) to include an SVG into your React app
+                            - The loader turns an SVG file that looks like this...
+                            - ...into a React component that looks like this
+                        </aside>
+                    </section>
+                    <section>
+                        <pre class="language-jsx"><code>
+                            import CircleComponent from "./circle.svg";
+
+                            const component = &lt;CircleComponent />;
+                        </code></pre>
+                        <aside class="notes" data-markdown>
+                            - This allows you to import the SVG right into your React app without creating a custom wrapper
+                            - But there is a problem...
+                        </aside>
+                    </section>
+                    <section>
+                        <pre class="language-css"><code>
+                            body {
+                                background: url("./circle.svg");
+                            }
+                        </code></pre>
+                        <p class="fragment">
+                            Should webpack transform the module with the <strong>react-svg-loader</strong> or with the <strong>file-loader</strong> 🤔?
+                        </p>
+                        <aside class="notes" data-markdown>
+                            - What happens when you're also using the same SVG in a CSS file like this?
+                        </aside>
+                    </section>
+                    <section>
+                        <p>
+                            <strong>Solution #1</strong>
+                        </p>
+                        <pre class="language-jsx"><code>
+                            import CircleComponent from "./circle.svg?component";
+
+                            const component = &lt;CircleComponent />;
+                        </code></pre>
+                        <div class="fragment">
+                            <pre class="language-js"><code>
+                                rules: [{
+                                    oneOf: [{
+                                        test: /\.svg$/,
+                                        resourceQuery: "?component",
+                                        use: ["react-svg-loader"],
+                                    }, {
+                                        test: /\.svg$/,
+                                        use: ["file-loader"],
+                                    }]
+                                }],
+                            </code></pre>
+                        </div>
+                        <aside class="notes" data-markdown>
+                            - Use the react-svg-loader chain only if there is an `?component` query.
+                            - You can achieve this using the `resourceQuery` condition
+                            - This will apply the react-svg-loader only in case there is the given query present
+                            - Notice also the `oneOf` condition
+                            - Pretty cool, right? But solution #2 is even better...
+                        </aside>
+                    </section>
+                </section>
+                <section>
+                    <section data-background-color="var(--color-primary-bg)">
+                        <h2>#12<br />"How to apply different loaders on the same module" Pt 2.</h2>
+                        <aside class="notes" data-markdown>
+                            - "How to apply different loaders on the same module" Part 2
+                        </aside>
+                    </section>
+                    <section>
+                        <p>
+                            <strong>Solution #2</strong>
+                        </p>
+                        <div class="fragment">
+                            <pre class="language-js"><code>
+                                rules: [{
+                                    oneOf: [{
+                                        test: /\.svg$/,
+                                        issuer: /\.jsx$/,
+                                        use: ["react-svg-loader"],
+                                    },
+                                    {
+                                        test: /\.svg$/,
+                                        use: ["file-loader"],
+                                    }]
+                                }],
+                            </code></pre>
+                        </div>
+                        <aside class="notes" data-markdown>
+                            - We don't need to use the explicit `resourceQuery`
+                            - What if we could apply different loaders based on the **importing module**?
+                            - That's what the `issuer` condition is for
+                            - Again: notice the `oneOf` condition
+                        </aside>
+                    </section>
+                    <section>
+                        <pre class="language-js"><code>
+                            import CircleComponent from "./circle.svg";
+
+                            const component = &lt;CircleComponent />;
+                        </code></pre>
+                        <pre class="language-css"><code>
+                            body {
+                                background: url("./circle.svg");
+                            }
+                        </code></pre>
+                        <aside class="notes" data-markdown>
+                            - Now you can just import the module and webpack will choose the appropiate loader by matching on the **importing module**
+                        </aside>
+                    </section>
+                </section>
+                <section>
+                    <section data-background-color="var(--color-primary-bg)">
+                        <h2>Recap.</h2>
+                        <aside class="notes" data-markdown>
+                            - Let's recap all the tips and trick we've talked about
+                        </aside>
+                    </section>
+                    <section>
+                        <ul>
+                            <li>
+                                #1: You don't need a webpack config
+                            </li>
+                            <li class="fragment">
+                                #2: TypeScript support
+                            </li>
+                            <li class="fragment">
+                                #3: Function as config
+                            </li>
+                            <li class="fragment">
+                                #4: Multi-compiler mode
+                            </li>
+                            <li class="fragment">
+                                #5: Async webpack configs
+                            </li>
+                            <li class="fragment">
+                                #6: Use nodemon
+                            </li>
+                        </ul>
+                    </section>
+                    <section>
+                        <ul>
+                            <li>
+                                #7: Use <code>require.resolve()</code>
+                            </li>
+                            <li class="fragment">
+                                #8: Use <code>.filter(Boolean)</code>
+                            </li>
+                            <li class="fragment">
+                                #9: Be careful about config abstractions
+                            </li>
+                            <li class="fragment">
+                                #10: Use <code>module.rules[].oneOf</code>
+                            </li>
+                            <li class="fragment">
+                                #11: <code>test</code> for file extensions, <code>include</code> for absolute paths
+                            </li>
+                            <li class="fragment">
+                                #12: How to apply different loaders on the same module
+                                <ul>
+                                    <li class="fragment">
+                                        Use the <code>resourceQuery</code> condition
+                                    </li>
+                                    <li class="fragment">
+                                        Use the <code>issuer</code> condition
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </section>
+                </section>
+                <section>
+                    <div style="text-align: center;">
+                        <img src="./assets/repo-qrcode.jpg" style="width: 300px;"><br>
+                        <a href="https://github.com/jhnns/webpack-config-tips" target="_blank">github.com/jhnns/webpack-config-tips</a>
+                    </div>
+                    <aside class="notes" data-markdown>
+                        - This is the repository where you can read up all the tips from the presentation
+                        - There are also code examples
+                    </aside>
+                </section>
+                <section
+                    data-background-image="../assets/prague.jpg"
+                    data-background-color="var(--color-primary-bg)"
+                    data-background-opacity="0.5"
+                >
+                    <h2>Thank you!</h2>
+                    <h3>@jhnnns</h3>
+                    <h3>@TheLarkInn</h3>
+                    <span style="font-size: 6rem;">🙇</span>
                 </section>
             </div>
         </div>

@@ -292,7 +292,7 @@ module.exports = {
     module: {
         rules: [
             isDev && {
-                include: /\.css$/,
+                test: /\.css$/,
                 loader: "style-loader",
             },
         ].filter(Boolean),
@@ -303,7 +303,7 @@ module.exports = {
 };
 ```
 
-#### Avoid unnecessary abstractions
+#### Be careful about config abstractions
 
 Since the webpack config is just JavaScript, people tend to treat it as regular code. They create abstractions as soon as they spot repetition.
 
@@ -383,8 +383,8 @@ There are a lot of ways—probably too many 😔—to configure rules and when t
 
 **The good news is:** You only need to remember 2. In 99.99995437% of all cases it's sufficient to use:
 
-- `test` for file names
-- `include` for directories
+- `test` for file extensions
+- `include` for directories or absolute paths
 
 ```js
     rules: [{
@@ -433,7 +433,7 @@ export default () => (
 );
 ```
 
-This allows you to render the SVG right in your components:
+This allows you to import the SVG right into your React app without creating a custom wrapper:
 
 ```js
 import CircleComponent from "./circle.svg";
