@@ -13,7 +13,16 @@
                 <section>
                     <section data-transition="fade"></section>
                     <section data-background-color="var(--color-primary-bg)">
-                        <h1>👋 Ahoj 🇨🇿</h1>
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                        ">
+                            <h1>👋 Ahoj 🇨🇿</h1>
+                            <img src="./assets/krtecek.png">
+                            <aside class="notes" data-markdown>
+                                - Krteček
+                            </aside>
+                        </div>
                     </section>
                     <section
                         data-background-color="white"
@@ -64,22 +73,6 @@
                     </span>
                 </section>
                 <section>
-                    <div class="kicker">Disclaimer</div>
-                    <p>
-                        They're not so secret. Most of them are published on
-                        <a href="https://webpack.js.org/" target="_blank"
-                            >webpack.js.org</a
-                        >.
-                    </p>
-                    <aside class="notes" data-markdown>
-                        - They're not so secret
-                        - Most of them are published on our documentation
-                        - But—as we all know—developers don't like to read documentation
-                        - So maybe they're still secret for you
-                        - Without further ado, let's start with the tips
-                    </aside>
-                </section>
-                <section>
                     <section data-background-color="var(--color-primary-bg)">
                         <h2>#1<br />You don't need a webpack config.</h2>
                     </section>
@@ -92,8 +85,8 @@
                                 entry: resolve(process.cwd(), "src", "index.js"),
                                 output: {
                                     path: resolve(process.cwd(), "dist"),
-                                    filename: "main.js"
-                                }
+                                    filename: "main.js",
+                                },
                             };
                             </code>
                         </pre>
@@ -149,6 +142,8 @@
                             ...or inside your webpack config
                         </aside>
                     </section>
+                </section>
+                <section>
                     <section data-background-color="var(--color-primary-bg)">
                         <h2>#2<br />TypeScript support.</h2>
                         <aside class="notes" data-markdown>
@@ -828,37 +823,31 @@ module.exports = Object.entries(translations)
                         </aside>
                     </section>
                 </section>
-                <!-- ---------------------------------------- -->
                 <section>
+                    <section data-background-color="var(--color-primary-bg)">
+                            <h2>#7<br />Use <code>require.resolve()</code></h2>
+                            <aside class="notes" data-markdown>
+                                - Use require.resolve()
+                                - Speaking of developer ergonomics, good error messages are also important
+                                - We know that webpack might not be the best example in that regard and we're constantly working on improving the error messages
+                                - But sometimes it's not so obvious what the expected behavior would be
+                                - Take a wrong alias for an example
+                            </aside>
+                        </section>
                     <section>
-                        <div class="fragment">
-                            <pre
-                                class="language-js"
-                            ><code>
-                                module.exports = {
-                                    resolve: {
-                                        alias: {
-                                            "/does/not/exist.js": "./src/replaced.js",
-                                        },
+                        <pre class="language-js"><code>
+                            module.exports = {
+                                resolve: {
+                                    alias: {
+                                        "/does/not/exist.js": "./src/replaced.js",
                                     },
-                                };
-                            </code></pre>
-                        </div>
+                                },
+                            };
+                        </code></pre>
                         <aside class="notes" data-markdown>
-                            - Speaking of developer ergonomics, good error messages are important
-                            - We know that webpack might not be the best example in that regard and we're constantly working on improving the error messages
-                            - But sometimes it's not so obvious what the expected behavior would be
-                            - Take a wrong alias for an example
                             - Should webpack complain about if an alias did not match? Should it error or should it just warn?
                             - What if the alias is only used in certain configurations?
                             - There's an easy way to fail early in that case:
-                        </aside>
-                    </section>
-                    <section data-background-color="var(--color-primary-bg)">
-                        <h2>#7<br />Use <code>require.resolve()</code>.</h2>
-                        <aside class="notes" data-markdown>
-                            - Use require.resolve() for files
-                            - In the previous example it would look like this:
                         </aside>
                     </section>
                     <section>
@@ -893,13 +882,12 @@ module.exports = Object.entries(translations)
                         <aside class="notes" data-markdown>
                             - Also useful if you want to execute a loader just on a certain file
                             - Now everytime you move the file but don't update the path in your webpack config, `require.resolve` will complain about it.
-                            - Our next tip is:
                         </aside>
                     </section>
                 </section>
                 <section>
                     <section data-background-color="var(--color-primary-bg)">
-                        <h2>#8<br />Use <code>.filter(Boolean)</code>.</h2>
+                        <h2>#8<br />Use <code>.filter(Boolean)</code></h2>
                         <aside class="notes" data-markdown>
                             - Use `.filter(Boolean)`
                         </aside>
@@ -956,31 +944,11 @@ module.exports = Object.entries(translations)
                 </section>
                 <section>
                     <section data-background-color="var(--color-primary-bg)">
-                        <h2>#9<br />Be careful about config abstractions.</h2>
+                        <h2>#9<br />Avoid config logic.</h2>
                         <aside class="notes" data-markdown>
-                            - In general: be careful about config abstractions
+                            - In general: Avoid config logic
                             - A good rule of thumb is:
                             - The regular webpack config object should still be "visible" on first glance
-                        </aside>
-                    </section>
-                    <section>
-                        <pre class="language-js"><code>
-                            module.exports = {
-                                module: {
-                                    rules: [
-                                        isDev && {
-                                            test: /\.css$/,
-                                            loader: "style-loader",
-                                        },
-                                    ].filter(Boolean),
-                                },
-                                plugins: [
-                                    analyze && new BundleAnalyzerPlugin(),
-                                ].filter(Boolean),
-                            };
-                        </code></pre>
-                        <aside class="notes" data-markdown>
-                            - This is still quite readable since you can easily spot each part of the webpack config.
                         </aside>
                     </section>
                     <section>
@@ -1006,14 +974,49 @@ module.exports = Object.entries(translations)
                             };
                         </code></pre>
                         <aside class="notes" data-markdown>
-                            - This is way harder to parse because we can't see where exactly the loader or the plugin will be added to the config.
-                            - While there are legitimate use-cases for this—such as sharing configs across projects—you should still...
+                            - This is really hard to parse
+                            - We can't see where exactly the loader or the plugin will be added to the config.
+                            - While there are legitimate use-cases for this—such as sharing configs across projects—you should try to avoid logic in your config
                         </aside>
                     </section>
                     <section>
-                        <strong>Be careful about config abstractions.</strong>
+                        <pre class="language-js"><code>
+                            module.exports = {
+                                module: {
+                                    rules: [
+                                        isDev && {
+                                            test: /\.css$/,
+                                            loader: "style-loader",
+                                        },
+                                    ].filter(Boolean),
+                                },
+                                plugins: [
+                                    analyze && new BundleAnalyzerPlugin(),
+                                ].filter(Boolean),
+                            };
+                        </code></pre>
                         <aside class="notes" data-markdown>
-                            Be careful about config abstractions.
+                            - This is more readable since you can easily spot each part of the webpack config.
+                        </aside>
+                    </section>
+                    <section>
+                        <pre class="language-js"><code>
+                            const webpackMerge = require("webpack-merge");
+                            const devConfig = {
+                                module: {
+                                    rules: [{
+                                        test: /\.css$/,
+                                        loader: "style-loader",
+                                    }]
+                                }
+                            };
+                            module.exports = webpackMerge(
+                                { /* base config */ },
+                                mode === "development" ? devConfig : prodConfig
+                            );
+                        </code></pre>
+                        <aside class="notes" data-markdown>
+                            - This is even better
                         </aside>
                     </section>
                 </section>
@@ -1142,6 +1145,14 @@ module.exports = Object.entries(translations)
                             - There are a lot of ways to configure loaders, and there are probably too many.
                         </aside>
                     </section>
+                </section>
+                <section>
+                    <section data-background-color="var(--color-primary-bg)">
+                        <h2>#11<br /><code>test</code> for file extensions, <code>include</code> for absolute paths.</h2>
+                        <aside class="notes" data-markdown>
+                            - test for file extensions, include for absolute paths
+                        </aside>
+                    </section>
                     <section data-transition="fade-out">
                         <pre class="language-js no-whitespace-normalization"><code>rules: [{
     include: [path.resolve(__dirname, "src")],
@@ -1267,22 +1278,15 @@ module.exports = Object.entries(translations)
                             - If a module inside `node_modules` requires transpilation, you can add it to the array explicitly.
                         </aside>
                     </section>
-                    <section data-background-color="var(--color-primary-bg)">
-                        <h2>#11<br /><code>test</code> for file extensions, <code>include</code> for absolute paths.</h2>
-                        <aside class="notes" data-markdown>
-                            - So our tip #11 is:
-                            - use test for file extensions and include for absolute paths
-                        </aside>
-                    </section>
                 </section>
                 <section>
                     <section data-background-color="var(--color-primary-bg)">
-                        <h2 class="fragment">#12<br />"How to apply different loaders on the same module" Pt 1.</h2>
+                        <h2>#12<br />"How to apply different loaders on the same module" Pt 1.</h2>
                         <aside class="notes" data-markdown>
                             - The next two tips are one of the most useful and yet least known features of webpack.
                             - "How to apply different loaders on the same module" Pt 1
                             - Part 1 because there are two solutions for the same problem and we want to show both to you
-                            - You can decide which you like better
+                            - You can decide which one you like better
                         </aside>
                     </section>
                     <section>
@@ -1381,15 +1385,14 @@ module.exports = Object.entries(translations)
                         <div class="fragment">
                             <pre class="language-js"><code>
                                 rules: [{
-                                    oneOf: [{
-                                        test: /\.svg$/,
-                                        issuer: /\.jsx$/,
-                                        use: ["react-svg-loader"],
-                                    },
-                                    {
-                                        test: /\.svg$/,
-                                        use: ["file-loader"],
-                                    }]
+                                    test: /\.svg$/,
+                                    issuer: /\.jsx$/,
+                                    use: ["react-svg-loader"],
+                                },
+                                {
+                                    test: /\.svg$/,
+                                    issuer: /\.css$/,
+                                    use: ["file-loader"],
                                 }],
                             </code></pre>
                         </div>
@@ -1454,7 +1457,7 @@ module.exports = Object.entries(translations)
                                 #8: Use <code>.filter(Boolean)</code>
                             </li>
                             <li class="fragment">
-                                #9: Be careful about config abstractions
+                                #9: Avoid config logic
                             </li>
                             <li class="fragment">
                                 #10: Use <code>module.rules[].oneOf</code>
@@ -1477,24 +1480,28 @@ module.exports = Object.entries(translations)
                     </section>
                 </section>
                 <section>
+                    <section data-background-color="var(--color-primary-bg)">
+                        <h2>#13<br />Secret bonus.</h2>
+                        <div class="fragment">
+                            All of these secrets are published on
+                            <a href="https://webpack.js.org/" target="_blank"
+                                >webpack.js.org</a
+                            >.
+                        </div>
+                    </section>
+                </section>
+                <section>
                     <div style="text-align: center;">
                         <img src="./assets/repo-qrcode.jpg" style="width: 300px;"><br>
                         <a href="https://github.com/jhnns/webpack-config-tips" target="_blank">github.com/jhnns/webpack-config-tips</a>
+                        <div class="fragment">
+                            <div style="font-size: 6rem; margin-top: 1rem;">🙇</div>
+                            <div style="margin-top: 1rem;">
+                                <span>@jhnnns</span>
+                                <span>@TheLarkInn</span>
+                            </div>
+                        </div>
                     </div>
-                    <aside class="notes" data-markdown>
-                        - This is the repository where you can read up all the tips from the presentation
-                        - There are also code examples
-                    </aside>
-                </section>
-                <section
-                    data-background-image="../assets/prague.jpg"
-                    data-background-color="var(--color-primary-bg)"
-                    data-background-opacity="0.5"
-                >
-                    <h2>Thank you!</h2>
-                    <h3>@jhnnns</h3>
-                    <h3>@TheLarkInn</h3>
-                    <span style="font-size: 6rem;">🙇</span>
                 </section>
             </div>
         </div>
