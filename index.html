@@ -14,11 +14,10 @@
                     <section data-transition="fade"></section>
                     <section data-background-color="var(--color-primary-bg)">
                         <div style="
-                            display: flex;
-                            align-items: center;
+                            text-align: center;
                         ">
-                            <h1>👋 Ahoj 🇨🇿</h1>
                             <img src="./assets/krtecek.png">
+                            <h1 style="width: auto; margin-top: 1rem;">👋 Ahoj 🇨🇿</h1>
                             <aside class="notes" data-markdown>
                                 - Krteček
                             </aside>
@@ -359,7 +358,7 @@
                         <aside class="notes" data-markdown>
                             By using an empty object as default argument, we can
                             ensure that our config also works in case the
-                            developer hasn't been provided any env arguments.
+                            developer hasn't provided any env arguments.
                         </aside>
                     </section>
                     <section data-transition="fade">
@@ -463,7 +462,7 @@
                         </code></pre>
                         <aside class="notes" data-markdown>
                             - Take this configuration as an example
-                            - Here we export to configurations, one for the browser
+                            - Here we export two configurations, one for the browser
                             environment and one for a Node.js environment
                             - As you can see, this is useful for isomorphic apps that
                             need to create two bundles, one for the browser and
@@ -477,128 +476,6 @@
                         <aside class="notes" data-markdown>
                             - The console output for this configuration would look like this
                             - You can see the names for each bundle (we call them child compilations)
-                        </aside>
-                    </section>
-                    <section data-transition="fade-out">
-                        <pre
-                            class="language-js no-whitespace-normalization"
-                        ><code>
-const translations = {
-    en: require("./en.json"),
-    de: require("./de.json"),
-};
-
-
-
-
-
-
-
-</code></pre>
-                        <aside class="notes" data-markdown>
-                            - Multi-compiler mode is also useful for creating localized bundles
-                            - Suppose we have a translation object that maps language ids to localized strings stored in JSON
-                        </aside>
-                    </section>
-                    <section data-transition="fade">
-                            <pre
-                                class="language-js no-whitespace-normalization"
-                            ><code>
-const translations = {
-    en: require("./en.json"),
-    de: require("./de.json"),
-};
-
-Object.entries(translations)
-    .map(([language, translations]) =>
-
-
-
-    );</code></pre>
-                            <aside class="notes" data-markdown>
-                                - Now we map over the entries of the translations object
-                            </aside>
-                        </section>
-                    <section data-transition="fade">
-                        <pre
-                            class="language-js no-whitespace-normalization"
-                        ><code>
-const translations = {
-    en: require("./en.json"),
-    de: require("./de.json"),
-};
-
-Object.entries(translations)
-    .map(([language, translations]) => ({
-        name: language,
-
-
-    }));</code></pre>
-                        <aside class="notes" data-markdown>
-                            - And we return a named configuration for each language
-                        </aside>
-                    </section>
-                    <section data-transition="fade">
-                        <pre
-                            class="language-js no-whitespace-normalization"
-                        ><code>
-const translations = {
-    en: require("./en.json"),
-    de: require("./de.json"),
-};
-
-Object.entries(translations)
-    .map(([language, translations]) => ({
-        name: language,
-        output: { path: resolve(__dirname, "dist", language) },
-
-    }));</code></pre>
-                        <aside class="notes" data-markdown>
-                            - Now we specify a different output depending on the language
-                        </aside>
-                    </section>
-                    <section data-transition="fade">
-                        <pre
-                            class="language-js no-whitespace-normalization"
-                        ><code>const I18nPlugin = require("i18n-webpack-plugin");
-const translations = {
-    en: require("./en.json"),
-    de: require("./de.json"),
-};
-
-Object.entries(translations)
-    .map(([language, translations]) => ({
-        name: language,
-        output: { path: resolve(__dirname, "dist", language) },
-        plugins: [new I18nPlugin(translations)]
-    }));</code></pre>
-                        <aside class="notes" data-markdown>
-                            - In this example, we're going to use the internationalization-webpack-plugin which replaces certain strings in the bundle with translated strings
-                        </aside>
-                    </section>
-                    <section data-transition="fade-in">
-                        <pre
-                            class="language-js no-whitespace-normalization"
-                        ><code>const I18nPlugin = require("i18n-webpack-plugin");
-const translations = {
-    en: require("./en.json"),
-    de: require("./de.json"),
-};
-
-module.exports = Object.entries(translations)
-    .map(([language, translations]) => ({
-        name: language,
-        output: { path: resolve(__dirname, "dist", language) },
-        plugins: [new I18nPlugin(translations)]
-    }));</code></pre>
-                        <aside class="notes" data-markdown>
-                            - Now we only need to export the resulting array of configurations
-                            - This is one way to solve internationalization in single-page apps
-                            - This approach has some advantages, but also some drawbacks
-                            - One advantage is that the user doesn't need to download an extra file for translations
-                            - A major drawback of this approach is that your build times will increase for each new language you support
-                            - In general I don't recommend this approach, but maybe that's something that works great for your use-case
-                            - At this point you will probably ask yourself...
                         </aside>
                     </section>
                     <section>
@@ -657,25 +534,6 @@ module.exports = Object.entries(translations)
                             - Well, if you have a function that returns a webpack config...
                             - ...you can put an async keyword before that function and the config will become asynchronous
                             - This allows you to load data from the database or external services
-                            - With the language example from the previous tip:
-                        </aside>
-                    </section>
-                    <section data-transition="fade-in">
-                        <pre
-                            class="language-js"
-                        ><code>
-                            module.exports = async () => {
-                                const languages = await loadLanguagesFromProvider();
-
-                                return Object
-                                    .entries(languages)
-                                    .map(([language, translations]) => ({
-                                        /* ...*/
-                                    }));
-                            };
-                        </code></pre>
-                        <aside class="notes" data-markdown>
-                            - We could load the languages from an external provider
                         </aside>
                     </section>
                     <section
@@ -866,24 +724,6 @@ module.exports = Object.entries(translations)
                             - By the way: this is also the easiest and safest way to replace one module with another using `resolve.alias`
                         </aside>
                     </section>
-                    <section>
-                        <pre class="language-js"><code>
-                            module.exports = {
-                                module: {
-                                    rules: [
-                                        {
-                                            include: [require.resolve("./src/replaced.js")],
-                                            use: "raw-loader",
-                                        },
-                                    ],
-                                },
-                            };
-                        </code></pre>
-                        <aside class="notes" data-markdown>
-                            - Also useful if you want to execute a loader just on a certain file
-                            - Now everytime you move the file but don't update the path in your webpack config, `require.resolve` will complain about it.
-                        </aside>
-                    </section>
                 </section>
                 <section>
                     <section data-background-color="var(--color-primary-bg)">
@@ -1024,16 +864,13 @@ module.exports = Object.entries(translations)
                     <section data-background-color="var(--color-primary-bg)">
                         <h2>#10<br />Use <code>module.rules[].oneOf</code>.</h2>
                         <aside class="notes" data-markdown>
-                            - A quick show of hands: Who of you has used the module.rules option?
-                            - (Announce the audience result for the video recording)
-                            - And who of has used the <code>module.rules[].oneOf</code> option?
-                            - (Announce the audience result for the video recording)
+                            - You might ask yourself...
                         </aside>
                     </section>
                     <section>
-                        <strong>So what does the <code>module.rules[].oneOf</code> option do? 🤔</strong>
+                        <strong>What does the <code>module.rules[].oneOf</code> option do? 🤔</strong>
                         <aside class="notes" data-markdown>
-                            - So what does the <code>module.rules[].oneOf</code> option do?
+                            - What does the <code>module.rules[].oneOf</code> option do?
                             - In order to explain that, you need to know how webpack interprets rules.
                             - This is **really really important** and a lot of people don't get this right.
                         </aside>
